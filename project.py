@@ -1,5 +1,7 @@
 import json
 import os
+from openpyxl import Workbook
+from openpyxl.styles import Font
 
 num_of_parts = 5 # min = 1, max = 5
 
@@ -13,6 +15,9 @@ JSON_3 = 'json_files/stem_terms.json'
 JSON_COMMAND_1 = 'json_files/command_1.json'
 JSON_COMMAND_2 = 'json_files/command_2.json'
 JSON_COMMAND_3 = 'json_files/command_3.json'
+JSON_COMMAND_5 = 'json_files/command_5.json'
+
+MAX_ROWS_XLSX = 1048570
 
 """
 	Saves a collection as a json file in the given path
@@ -153,6 +158,58 @@ def command_3(stem, category, cat_dict, term_dict, stem_list):
 
 	return [category, jaccard_index(a, b, intersection)]
 
+def command_4(filename, cat_dict, term_dict, stem_list):
+	elem_list = []
+	for category in cat_dict.keys():
+		document_list = cat_dict[category]
+		a = len(document_list)
+		for term in term_dict.keys():
+			docs_with_term = term_dict[term]
+			b = len(docs_with_term)
+			intersection = len(set(document_list).intersection(docs_with_term))
+			
+			elem = {
+				"Stem": stem_list[int(term)-1],
+				"Category": category,
+				"JI Score": jaccard_index(a, b, intersection)
+				}
+			
+			elem_list.append(elem)
+
+	type_of_file = filename.split(".")[1]
+	if (type_of_file == 'xlsx'):
+		excel = Workbook()
+		excel_sheet = excel.active
+		excel_sheet.append(["Stem", "Category", "JI Score"])
+		for index in ['A1', 'B1', 'C1']:
+			excel_sheet[index].font = Font(size=14, bold=True)
+		for i, elem in enumerate(elem_list):
+			if (i >= MAX_ROWS_XLSX):
+				break
+			excel_sheet.append(list(elem.values()))
+		if os.path.exists(filename):
+			os.remove(filename)
+		excel.save(filename)
+	elif (type_of_file == 'json'):
+		save_coll_as_json(elem_list, filename)
+
+def command_5(doc_id, identifier, cat_dict, term_dict, stem_list):
+	result = []
+	if (identifier == '-c'):
+		for category in cat_dict.keys():
+			if doc_id in cat_dict[category]:
+				result.append(category)
+	elif (identifier == '-t'):
+		for term in term_dict.keys():
+			if doc_id in term_dict[term]:
+				result.append(stem_list[int(term)-1])
+	else:
+		raise ValueError
+	return result
+
+def command_6(doc_id, identifier, cat_dict, term_dict, stem_list):
+	return len(command_5(doc_id, identifier, cat_dict, term_dict, stem_list))
+	
 def cli(command, cat_dict, term_dict, stem_list):
 	command_split = command.split(" ")
 	command_symbol = command_split[0]
@@ -169,6 +226,19 @@ def cli(command, cat_dict, term_dict, stem_list):
 		stem = command_split[1]
 		category = command_split[2]
 		return command_3(stem, category, cat_dict, term_dict, stem_list)
+	elif (command_symbol == '*'):
+		filename = command_split[1]
+		command_4(filename, cat_dict, term_dict, stem_list)
+	elif (command_symbol == 'P'):
+		doc_id = command_split[1]
+		identifier = command_split[2]
+		return command_5(doc_id, identifier, cat_dict, term_dict, stem_list)
+	elif (command_symbol == 'C'):
+		doc_id = command_split[1]
+		identifier = command_split[2]
+		return command_6(doc_id, identifier, cat_dict, term_dict, stem_list)
+	else:
+		raise ValueError
 
 def main():
 	cat_dict = load_document_categories(FILE_1)
@@ -188,6 +258,14 @@ def main():
 
 	# command_3_test = cli("$ winnie GWEA", cat_dict, term_dict, stem_list)
 	# save_coll_as_json(command_3_test, JSON_COMMAND_3)
+
+	# cli("* json_files/hello.xlsx", cat_dict, term_dict, stem_list)
+
+	# command_5_test = cli("P 427211 -t", cat_dict, term_dict, stem_list)
+	# save_coll_as_json(command_5_test, JSON_COMMAND_5)
+	
+	# command_6_test = cli("C 427211 -c", cat_dict, term_dict, stem_list)
+	# print(command_6_test)
 
 if (__name__ == "__main__"):
 	main()
