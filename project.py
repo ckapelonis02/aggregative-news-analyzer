@@ -89,8 +89,7 @@ def load_document_terms(file_path, num=-1):
 				for term in terms:
 					if term not in dt_dict.keys():
 						dt_dict[term] = []
-				
-				dt_dict[term].append(document)	
+					dt_dict[term].append(document)	
 
 	return dt_dict
 
@@ -250,8 +249,8 @@ def main():
 	stem_list = load_terms_mapping(FILE_3)
 	save_coll_as_json(stem_list, JSON_3)
 
-	# command_1_test = cli("@ E14 50", cat_dict, term_dict, stem_list)
-	# save_coll_as_json(command_1_test, JSON_COMMAND_1)
+	command_1_test = cli("@ E14 50", cat_dict, term_dict, stem_list)
+	save_coll_as_json(command_1_test, JSON_COMMAND_1)
 
 	# command_2_test = cli("# winnie 50", cat_dict, term_dict, stem_list)
 	# save_coll_as_json(command_2_test, JSON_COMMAND_2)
