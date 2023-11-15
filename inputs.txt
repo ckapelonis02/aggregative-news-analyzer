@@ -1,0 +1,8 @@
+"""
+@ E14 50
+# winnie 50
+$ winnie GWEA
+* total.xlsx
+P 427211 -t
+C 427211 -c
+"""
